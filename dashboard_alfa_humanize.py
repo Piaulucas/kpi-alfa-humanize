@@ -8,8 +8,8 @@ import os
 st.set_page_config(page_title="KPI — Alfa + Humanize", page_icon="🏥", layout="wide")
 
 EMPRESAS = {
-    'alfa':     {'nome': 'Alfa Saúde',         'cor': '#ff7f0e'},
-    'humanize': {'nome': 'Humanize Life Care',  'cor': '#2ca02c'},
+    'humanize': {'nome': 'Humanize Life Care', 'cor': '#f48031'},
+    'alfa':     {'nome': 'Alfa Saúde',         'cor': '#0f9ca3'},
 }
 
 DB_HOST     = st.secrets.get("database", {}).get("host",     os.getenv("DB_HOST",     "aws-1-us-east-1.pooler.supabase.com"))
@@ -91,11 +91,15 @@ st.divider()
 st.markdown("### 📅 Evolução — Faturamento Acumulado do Mês")
 fig = go.Figure()
 for chave, info in EMPRESAS.items():
-    df_emp = df[df['empresa'] == chave].sort_values("data_corte").copy()
+    df_emp = df[df['empresa'] == chave].copy()
+    df_emp['data_corte'] = pd.to_datetime(df_emp['data_corte'])
+    df_emp = df_emp.sort_values('data_corte')
     if df_emp.empty: continue
-    df_emp['data_label'] = pd.to_datetime(df_emp['data_corte']).dt.strftime("%d/%m")
+    df_emp['data_corte'] = pd.to_datetime(df_emp['data_corte'])
+    df_emp = df_emp.sort_values('data_corte')
+    df_emp['data_label'] = df_emp['data_corte'].dt.strftime('%d/%m')
     fig.add_trace(go.Scatter(
-        x=df_emp['data_label'], y=df_emp['valor_consolidado'],
+        x=df_emp['data_corte'], y=df_emp['valor_consolidado'],
         name=info['nome'], mode="lines+markers",
         line=dict(color=info['cor'], width=2),
     ))
